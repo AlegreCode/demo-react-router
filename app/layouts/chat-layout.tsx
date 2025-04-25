@@ -1,10 +1,11 @@
 import { ScrollArea } from '@radix-ui/react-scroll-area'
 import { X } from 'lucide-react'
-import { Outlet } from 'react-router'
+import { NavLink, Outlet, useParams } from 'react-router'
 import { Button } from '~/components/ui/button'
 
 
 const ChatLayout = () => {
+    const url = useParams()
     return (
         <div className="flex h-screen bg-background">
             {/* Sidebar */}
@@ -20,18 +21,19 @@ const ChatLayout = () => {
                         <div className="space-y-1">
                             <h3 className="px-2 text-sm font-semibold">Contacts</h3>
                             <div className="space-y-1">
-                                <Button variant="secondary" className="w-full justify-start">
+                                <NavLink to={"/chat/ABC"} 
+                                    className={({ isActive }) => isActive ? "flex w-full justify-start bg-blue-500 p-2 rounded-2xl transition-colors duration-300" : "flex w-full justify-start p-2"}>
                                     <div className="h-6 w-6 rounded-full bg-blue-500 mr-2 flex-shrink-0 flex items-center justify-center text-white text-xs">
                                         G5
                                     </div>
                                     G5 Customer
-                                </Button>
-                                <Button variant="ghost" className="w-full justify-start">
+                                </NavLink>
+                                <NavLink to={"/chat"} className="flex w-full justify-start">
                                     <div className="h-6 w-6 rounded-full bg-green-500 mr-2 flex-shrink-0 flex items-center justify-center text-white text-xs">
                                         JD
                                     </div>
                                     John Doe
-                                </Button>
+                                </NavLink>
                                 <Button variant="ghost" className="w-full justify-start">
                                     <div className="h-6 w-6 rounded-full bg-purple-500 mr-2 flex-shrink-0 flex items-center justify-center text-white text-xs">
                                         AS
