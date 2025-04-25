@@ -86,7 +86,7 @@ const ChatLayout = () => {
                             </Button>
                         </div>
                     </header>
-                    {<Outlet />}
+                    <Outlet />
                 </div>
 
                 {/* Right Panel - Contact Details */}
