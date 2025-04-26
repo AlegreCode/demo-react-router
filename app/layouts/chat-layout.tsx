@@ -3,10 +3,17 @@ import { Outlet, useParams } from 'react-router'
 import { Button } from '~/components/ui/button'
 import ContactList from '~/chat/components/ContactList'
 import ContactInformationCard from '~/chat/components/contact-information-card/ContactInformationCard'
+import { getClients } from '~/fake/fake-data'
+import type { Route } from './+types/chat-layout'
 
+export async function loader() {
+    const clients = await getClients()
+    return { clients };
+  }
 
-const ChatLayout = () => {
-    const url = useParams()
+const ChatLayout = ({ loaderData }: Route.ComponentProps) => {
+    const { clients } = loaderData;
+
     return (
         <div className="flex h-screen bg-background">
             {/* Sidebar */}
@@ -17,7 +24,7 @@ const ChatLayout = () => {
                         <span className="font-semibold">NexTalk</span>
                     </div>
                 </div>
-                <ContactList />
+                <ContactList clients={ clients }/>
                 <div className='w-full p-1.5 border-t'>
                     <Button variant={"destructive"} size={"sm"} className='text-white w-full hover:cursor-pointer'>
                         <LogOut className="h-4 w-4 mr-2" /> Log out
