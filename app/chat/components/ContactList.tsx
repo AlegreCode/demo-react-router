@@ -1,5 +1,5 @@
 import { ScrollArea } from '~/components/ui/scroll-area'
-import { NavLink } from 'react-router'
+import { NavLink, useParams } from 'react-router'
 import { Button } from '~/components/ui/button'
 import type { Client } from '../interfaces/chat.interface'
 
@@ -8,6 +8,7 @@ interface Props {
 }
 
 const ContactList = ({ clients }: Props) => {
+    const { id } = useParams()
     return (
         <ScrollArea className="h-[calc(100vh-110px)]">
             <div className="space-y-4 p-4">
@@ -16,12 +17,12 @@ const ContactList = ({ clients }: Props) => {
                     <div className="space-y-1">
                         {
                             clients?.map((client) => (
-                                <NavLink to={`/chat/${client.id}`} key={ client.id }
+                                <NavLink to={`/chat/client/${client.id}`} key={ client.id }
                                     className={({ isActive }) => isActive ? "flex w-full justify-start bg-blue-500 p-2 rounded-2xl transition-colors duration-300" : "flex w-full justify-start p-2"}>
-                                    <div className="h-6 w-6 rounded-full bg-gray-500 mr-2 flex-shrink-0 flex items-center justify-center text-white text-xs">
+                                    <div className={id === client.id ? "h-6 w-6 rounded-full bg-white mr-2 flex-shrink-0 flex items-center justify-center text-blue-500 text-xs font-bold" : "h-6 w-6 rounded-full bg-gray-500 mr-2 flex-shrink-0 flex items-center justify-center text-white text-xs font-light"}>
                                         { client.name[0].toUpperCase()}{ client.name[1].toUpperCase() }
                                     </div>
-                                    <span className='text-gray-500'>{ client.name }</span>
+                                    <span className={ id === client.id ? "text-white font-bold" : "text-gray-500 font-light"}>{ client.name }</span>
                                 </NavLink>
                             ))
                         }
