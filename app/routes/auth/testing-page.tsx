@@ -29,7 +29,7 @@ export default function MyRouteComponent({
       <p>Action Data: {JSON.stringify(actionData)}</p>
       <p>Route Parameters: {JSON.stringify(params)}</p>
       <p>Matched Routes: {JSON.stringify(matches)}</p>
-      <Link to={"/auth/testing-args"} className={buttonVariants({variant: "destructive"})}>
+      <Link to={"/auth/testing-args/ABC-123"} className={buttonVariants({variant: "destructive"})}>
           Testing args page
       </Link>
     </div>

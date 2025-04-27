@@ -19,14 +19,14 @@ export function meta() {
   ];
 }
 
-// export async function loader() {
-//   return { message: "Hola Mundo, desde el server.!" }
-// }
-
-export async function clientLoader() {
+export async function loader() {
   await sleep(3000)
+  return { message: "Hola Mundo, desde el server.!" }
+}
+
+export async function clientLoader({ serverLoader }: Route.ClientLoaderArgs) {
   // call the server loader
-  // const serverData = await serverLoader();
+  const serverData = await serverLoader();
   // And/or fetch data on the client
   // const data = getDataFromClient();
   // Return the data to expose through useLoaderData()
@@ -42,6 +42,7 @@ export function HydrateFallback() {
   );
 }
 
+clientLoader.hydrate = true as const
 
 export default function TestingArgsPage({
   loaderData,
