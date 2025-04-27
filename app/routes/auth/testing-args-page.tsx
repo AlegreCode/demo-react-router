@@ -20,7 +20,7 @@ export function meta() {
 }
 
 export async function loader() {
-  await sleep(3000)
+  await sleep(1500)
   return { message: "Hola Mundo, desde el server.!" }
 }
 
