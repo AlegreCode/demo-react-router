@@ -3,18 +3,59 @@ import { Card, CardContent } from "~/components/ui/card"
 import { Input } from "~/components/ui/input"
 import { Label } from "~/components/ui/label"
 import placeholderImg from "~/assets/images/placeholder.svg"
-import { Link, redirect, useNavigate } from "react-router"
+import { data, Form, Link, redirect, useNavigate } from "react-router"
 import type { Route } from "./+types/login-page"
-import { getSession } from "~/sessions.server"
+import { commitSession, getSession } from "~/sessions.server"
 
-export async function loader({ request }: Route.LoaderArgs){
+export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSession(request.headers.get("Cookie"))
 
-  console.log("session", session.get("userId"))
+  // console.log("session", session.get("userId"))
 
-  if (session.get("userId")) {
+  if (session.has("userId")) {
     return redirect("/chat")
   }
+
+  return data(
+    { error: session.get("error") },
+    {
+      headers: {
+        "Set-Cookie": await commitSession(session),
+      },
+    },
+  );
+}
+
+export async function action({
+  request,
+}: Route.ActionArgs) {
+  const session = await getSession(
+    request.headers.get("Cookie")
+  );
+  const form = await request.formData();
+  const email = form.get("email");
+  const password = form.get("password");
+
+  console.log(email)
+
+  if (email === "algo@gmail.com") {
+    session.flash("error", "Invalid email")
+    return redirect("/auth/login?error=Invalid email", {
+      headers: {
+        "Set-Cookie": await commitSession(session),
+      },
+    })
+  }
+
+  session.set("userId", "U1-12345");
+  session.set("token", "token-1234567890");
+
+  // Login succeeded, send them to the home page.
+  return redirect("/chat", {
+    headers: {
+      "Set-Cookie": await commitSession(session),
+    },
+  });
 }
 
 const LoginPage = () => {
@@ -28,7 +69,7 @@ const LoginPage = () => {
     <div className="flex flex-col gap-6">
       <Card className="overflow-hidden">
         <CardContent className="grid p-0 md:grid-cols-2">
-          <form className="p-6 md:p-8">
+          <Form method="POST" className="p-6 md:p-8">
             <div className="flex flex-col gap-6">
               <div className="flex flex-col items-center text-center">
                 <h1 className="text-2xl font-bold">Welcome back</h1>
@@ -36,7 +77,7 @@ const LoginPage = () => {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="m@example.com" required />
+                <Input id="email" type="email" name="email" placeholder="m@example.com" required />
               </div>
               <div className="grid gap-2">
                 <div className="flex items-center">
@@ -45,7 +86,7 @@ const LoginPage = () => {
                     Forgot your password?
                   </a>
                 </div>
-                <Input id="password" type="password" required />
+                <Input id="password" type="password" name="password" required />
               </div>
               <Button type="submit" className="w-full">
                 Login
@@ -89,7 +130,7 @@ const LoginPage = () => {
                 </Link>
               </div>
             </div>
-          </form>
+          </Form>
           <div className="relative hidden bg-muted md:block">
             <img
               src={placeholderImg}
