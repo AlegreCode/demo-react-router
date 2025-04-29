@@ -6,6 +6,9 @@ import placeholderImg from "~/assets/images/placeholder.svg"
 import { data, Form, Link, redirect, useNavigate } from "react-router"
 import type { Route } from "./+types/login-page"
 import { commitSession, getSession } from "~/sessions.server"
+import { useEffect, useState } from "react"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "~/components/ui/alert-dialog"
+import { AlertCircle, AlertCircleIcon } from "lucide-react"
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSession(request.headers.get("Cookie"))
@@ -40,11 +43,30 @@ export async function action({
 
   if (email === "algo@gmail.com") {
     session.flash("error", "Invalid email")
-    return redirect("/auth/login?error=Invalid email", {
-      headers: {
-        "Set-Cookie": await commitSession(session),
-      },
-    })
+    return data(
+      { error: "Invalid email." },
+      {
+        headers: {
+          "Set-Cookie": await commitSession(session),
+        },
+        status: 400,
+        statusText: "Bad request",
+      }
+    )
+  }
+
+  if (email === "" || password === "") {
+    session.flash("error", "The email and password fields are required.")
+    return data(
+      { error: "The email and password fields are required." },
+      {
+        headers: {
+          "Set-Cookie": await commitSession(session),
+        },
+        status: 400,
+        statusText: "Bad request",
+      }
+    )
   }
 
   session.set("userId", "U1-12345");
@@ -58,15 +80,36 @@ export async function action({
   });
 }
 
-const LoginPage = () => {
+const LoginPage = ({ actionData }: Route.ComponentProps) => {
+  const [openAlert, setOpenAlert] = useState(false)
   const navigate = useNavigate()
 
   const onAppleSingIn = () => {
     navigate("/auth/testing", { replace: true })
   }
 
+  useEffect(() => {
+    if (actionData?.error) {
+      setOpenAlert(true)
+    }
+  }, [actionData])
+
   return (
     <div className="flex flex-col gap-6">
+      <AlertDialog defaultOpen={openAlert} open={openAlert} onOpenChange={setOpenAlert}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertCircle size={50} className="text-red-800 mx-auto"/>
+            <AlertDialogTitle className="text-center text-red-500">Somethig went wrong!</AlertDialogTitle>
+            <AlertDialogDescription className="text-center text-red-500">
+              { actionData?.error }
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction className="w-full bg-red-800 hover:cursor-pointer hover:bg-red-500">Continue</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <Card className="overflow-hidden">
         <CardContent className="grid p-0 md:grid-cols-2">
           <Form method="POST" className="p-6 md:p-8">
@@ -77,7 +120,7 @@ const LoginPage = () => {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" name="email" placeholder="m@example.com" required />
+                <Input id="email" type="email" name="email" placeholder="m@example.com"  />
               </div>
               <div className="grid gap-2">
                 <div className="flex items-center">
@@ -86,7 +129,7 @@ const LoginPage = () => {
                     Forgot your password?
                   </a>
                 </div>
-                <Input id="password" type="password" name="password" required />
+                <Input id="password" type="password" name="password"  />
               </div>
               <Button type="submit" className="w-full hover:cursor-pointer">
                 Login
