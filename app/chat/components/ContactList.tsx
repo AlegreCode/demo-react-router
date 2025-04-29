@@ -18,7 +18,13 @@ const ContactList = ({ clients }: Props) => {
                         {
                             clients?.map((client) => (
                                 <NavLink to={`/chat/client/${client.id}`} key={ client.id }
-                                    className={({ isActive }) => isActive ? "flex w-full justify-start bg-blue-500 p-2 rounded-2xl transition-colors duration-300" : "flex w-full justify-start p-2"}>
+                                    className={({ isActive, isPending }) => 
+                                    isActive 
+                                    ? "flex w-full justify-start bg-blue-500 p-2 rounded-2xl transition-colors duration-300" 
+                                    : isPending 
+                                    ? "flex w-full justify-start p-2 bg-amber-300 rounded-2xl"
+                                    : "flex w-full justify-start p-2"}>
+                                    
                                     <div className={id === client.id ? "h-6 w-6 rounded-full bg-white mr-2 flex-shrink-0 flex items-center justify-center text-blue-500 text-xs font-bold" : "h-6 w-6 rounded-full bg-gray-500 mr-2 flex-shrink-0 flex items-center justify-center text-white text-xs font-light"}>
                                         { client.name[0].toUpperCase()}{ client.name[1].toUpperCase() }
                                     </div>
