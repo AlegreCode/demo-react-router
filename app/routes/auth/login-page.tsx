@@ -9,6 +9,7 @@ import { commitSession, getSession } from "~/sessions.server"
 import { useEffect, useState } from "react"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "~/components/ui/alert-dialog"
 import { AlertCircle, AlertCircleIcon } from "lucide-react"
+import { loginUser } from "~/fake/fake-data"
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSession(request.headers.get("Cookie"))
@@ -69,8 +70,11 @@ export async function action({
     )
   }
 
-  session.set("userId", "U1-12345");
-  session.set("token", "token-1234567890");
+  const user = await loginUser()
+
+  session.set("userId", user.id)
+  session.set("token", user.token)
+  session.set("name", user.name)
 
   // Login succeeded, send them to the home page.
   return redirect("/chat", {
