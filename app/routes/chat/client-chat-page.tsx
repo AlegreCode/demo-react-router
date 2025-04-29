@@ -1,49 +1,53 @@
 import { ScrollArea } from '@radix-ui/react-scroll-area'
-import { Copy, Download, ThumbsUp, ThumbsDown, Send } from 'lucide-react'
+import { Copy, Download, ThumbsUp, ThumbsDown, Send, MessageSquareOff } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '~/components/ui/button'
 import { Textarea } from '~/components/ui/textarea'
+import { getClient, getClientMessages } from '~/fake/fake-data'
+import type { Route } from './+types/client-chat-page'
+import { formatDate } from '~/lib/date-formatter'
+import { getSession } from '~/sessions.server'
 
-interface Message {
-  role: "agent" | "user"
-  content: string
-  timestamp: string
+export async function loader({ params, request }: Route.LoaderArgs) {
+  const { id } = params
+  const messages = await getClientMessages(id)
+  const client = await getClient(id)
+  const session = await getSession(request.headers.get("Cookie"))
+  const username = session.get("name")
+
+  return { messages, client, username }
 }
 
-const ClientChatPage = () => {
+const ClientChatPage = ({ loaderData }: Route.ComponentProps) => {
   const [input, setInput] = useState("")
-  const [messages] = useState<Message[]>([
-    {
-      role: "agent",
-      content: "Hello, I am a generative AI agent. How may I assist you today?",
-      timestamp: "4:08:28 PM",
-    },
-    {
-      role: "user",
-      content: "Hi, I'd like to check my bill.",
-      timestamp: "4:08:37 PM",
-    },
-    {
-      role: "agent",
-      content:
-        "Please hold for a second.\n\nOk, I can help you with that\n\nI'm pulling up your current bill information\n\nYour current bill is $150, and it is due on August 31, 2024.\n\nIf you need more details, feel free to ask!",
-      timestamp: "4:08:37 PM",
-    },
-  ])
+  const { messages, client, username } = loaderData
+  if (messages.length === 0) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center gap-4 p-8 text-center">
+        <div className="h-24 w-24 rounded-full bg-muted flex items-center justify-center">
+          <MessageSquareOff className="h-12 w-12 text-muted-foreground" />
+        </div>
+        <div>
+          <h2 className="text-2xl font-semibold mb-2 text-muted-foreground">No hay mensajes con {client.name}</h2>
+          <p className="text-muted-foreground">¡Sé el primero en iniciar una conversación! Escribe un mensaje para comenzar a chatear.</p>
+        </div>
+      </div>
+    )
+  }
   return (
     <div className="flex-1 flex flex-col">
       <ScrollArea className="flex-1 p-4">
         <div className="space-y-4">
-          {messages.map((message, index) => (
+          {messages?.map((message, index) => (
             <div key={index} className="w-full">
-              {message.role === "agent" ? (
+              {message.sender === "client" ? (
                 // Agent message - left aligned
                 <div className="flex gap-2 max-w-[80%]">
                   <div className="h-8 w-8 rounded-full bg-primary flex-shrink-0" />
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium">NexTalk</span>
-                      <span className="text-sm text-muted-foreground">{message.timestamp}</span>
+                      <span className="text-sm font-medium">{client.name}</span>
+                      <span className="text-sm text-muted-foreground">{formatDate(message.createdAt)}</span>
                     </div>
                     <div className="p-3 bg-muted/50 rounded-lg">
                       <p className="text-sm whitespace-pre-wrap">{message.content}</p>
@@ -68,8 +72,8 @@ const ClientChatPage = () => {
                 // User message - right aligned
                 <div className="flex flex-col items-end">
                   <div className="text-right mb-1">
-                    <span className="text-sm font-medium mr-2">G5</span>
-                    <span className="text-sm text-muted-foreground">{message.timestamp}</span>
+                    <span className="text-sm font-medium mr-2">{username}</span>
+                    <span className="text-sm text-muted-foreground">{formatDate(message.createdAt)}</span>
                   </div>
                   <div className="bg-black text-white p-3 rounded-lg max-w-[80%]">
                     <p className="text-sm whitespace-pre-wrap">{message.content}</p>
