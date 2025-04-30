@@ -41,7 +41,6 @@ export async function action({
   const email = form.get("email");
   const password = form.get("password");
 
-  console.log(email)
 
   if (email === "algo@gmail.com") {
     session.flash("error", "Invalid email")

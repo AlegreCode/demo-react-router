@@ -1,12 +1,14 @@
 import { ScrollArea } from '@radix-ui/react-scroll-area'
 import { Copy, Download, ThumbsUp, ThumbsDown, Send, MessageSquareOff } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from '~/components/ui/button'
 import { Textarea } from '~/components/ui/textarea'
-import { getClient, getClientMessages } from '~/fake/fake-data'
+import { getClient, getClientMessages, sendMessage } from '~/fake/fake-data'
 import type { Route } from './+types/client-chat-page'
 import { formatDate } from '~/lib/date-formatter'
-import { getSession } from '~/sessions.server'
+import { commitSession, getSession } from '~/sessions.server'
+import { data, Form } from 'react-router'
+import Dialong from '~/components/dialog'
 
 export async function loader({ params, request }: Route.LoaderArgs) {
   const { id } = params
@@ -18,9 +20,44 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   return { messages, client, username }
 }
 
-const ClientChatPage = ({ loaderData }: Route.ComponentProps) => {
+export async function action({ request, params }: Route.ActionArgs){
+  const formData = await request.formData()
+  const message = formData.get("message") ?? ""
+  const session = await getSession(request.headers.get("Cookie"))
+
+  if (message === "") {
+    session.flash("error", "The message field is required.")
+    return data(
+      { error: "The message field is required."},
+      {
+        headers: {
+          "Set-Cookie": await commitSession(session)
+        },
+        status: 400,
+        statusText: "Bad request"
+      }
+    )
+  }
+  const newMessage = await sendMessage({
+    sender: "agent",
+    clientId: params.id,
+    content: message.toString(),
+    createdAt: new Date()
+  })
+}
+
+const ClientChatPage = ({ loaderData, actionData }: Route.ComponentProps) => {
+  const [openAlert, setOpenAlert] = useState(false)
   const [input, setInput] = useState("")
   const { messages, client, username } = loaderData
+
+  useEffect(() => {
+    if (actionData?.error) {
+      setOpenAlert(true)
+    }
+  }, [actionData])
+
+
   if (messages.length === 0) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center gap-4 p-8 text-center">
@@ -34,8 +71,12 @@ const ClientChatPage = ({ loaderData }: Route.ComponentProps) => {
       </div>
     )
   }
+
   return (
     <div className="flex-1 flex flex-col">
+
+      <Dialong open={openAlert} onOpenChange={setOpenAlert} error={actionData?.error} />
+
       <ScrollArea className="flex-1 p-4">
         <div className="space-y-4">
           {messages?.map((message, index) => (
@@ -84,20 +125,21 @@ const ClientChatPage = ({ loaderData }: Route.ComponentProps) => {
           ))}
         </div>
       </ScrollArea>
-      <div className="p-4 border-t">
+      <Form method='POST' className="p-4 border-t">
         <div className="flex items-center gap-2">
           <Textarea
             placeholder="Type a message as a customer"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             className="min-h-[44px] h-[44px] resize-none py-3"
+            name='message'
           />
-          <Button className="h-[44px] px-4 flex items-center gap-2">
+          <Button type='submit' className="h-[44px] px-4 flex items-center gap-2 hover:cursor-pointer">
             <Send className="h-4 w-4" />
             <span>Send</span>
           </Button>
         </div>
-      </div>
+      </Form>
     </div>
   )
 }
