@@ -10,6 +10,7 @@ import { useEffect, useState } from "react"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "~/components/ui/alert-dialog"
 import { AlertCircle, AlertCircleIcon } from "lucide-react"
 import { loginUser } from "~/fake/fake-data"
+import Dialong from "~/components/dialog"
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSession(request.headers.get("Cookie"))
@@ -100,20 +101,9 @@ const LoginPage = ({ actionData }: Route.ComponentProps) => {
 
   return (
     <div className="flex flex-col gap-6">
-      <AlertDialog defaultOpen={openAlert} open={openAlert} onOpenChange={setOpenAlert}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertCircle size={50} className="text-red-800 mx-auto"/>
-            <AlertDialogTitle className="text-center text-red-500">Somethig went wrong!</AlertDialogTitle>
-            <AlertDialogDescription className="text-center text-red-500">
-              { actionData?.error }
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogAction className="w-full bg-red-800 hover:cursor-pointer hover:bg-red-500">Continue</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      
+      <Dialong open={openAlert} onOpenChange={setOpenAlert} error={actionData?.error} />
+
       <Card className="overflow-hidden">
         <CardContent className="grid p-0 md:grid-cols-2">
           <Form method="POST" className="p-6 md:p-8">
