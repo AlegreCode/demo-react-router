@@ -3,7 +3,7 @@ import { Form, Link, Outlet, redirect, useParams } from 'react-router'
 import { Button } from '~/components/ui/button'
 import ContactList from '~/chat/components/ContactList'
 import ContactInformationCard from '~/chat/components/contact-information-card/ContactInformationCard'
-import { getClients } from '~/fake/fake-data'
+import { getClient, getClients } from '~/fake/fake-data'
 import type { Route } from './+types/chat-layout'
 import { getSession } from '~/sessions.server'
 
@@ -16,6 +16,7 @@ export async function loader({ request }: Route.LoaderArgs) {
         return redirect("/auth/login")
     }
     const clients = await getClients()
+    
     return { clients, userName };
   }
 
