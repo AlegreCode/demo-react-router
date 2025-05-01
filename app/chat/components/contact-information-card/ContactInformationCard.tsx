@@ -17,7 +17,6 @@ const ContactInformationCard = () => {
 
     if (!id) return <NoContactSelected />
 
-    console.log("Corriendo código...")
     const client = clients.find((client:Client) => client.id === id)
     return (
         <ContactInformation client={client}/>
