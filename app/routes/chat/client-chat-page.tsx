@@ -9,6 +9,7 @@ import { formatDate } from '~/lib/date-formatter'
 import { commitSession, getSession } from '~/sessions.server'
 import { data, Form } from 'react-router'
 import Dialong from '~/components/dialog'
+import ClientForm from '~/components/ClientForm'
 
 export async function loader({ params, request }: Route.LoaderArgs) {
   const { id } = params
@@ -20,7 +21,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   return { messages, client, username }
 }
 
-export async function action({ request, params }: Route.ActionArgs){
+export async function action({ request, params }: Route.ActionArgs) {
   const formData = await request.formData()
   const message = formData.get("message") ?? ""
   const session = await getSession(request.headers.get("Cookie"))
@@ -28,7 +29,7 @@ export async function action({ request, params }: Route.ActionArgs){
   if (message === "") {
     session.flash("error", "The message field is required.")
     return data(
-      { error: "The message field is required."},
+      { error: "The message field is required.", success: false },
       {
         headers: {
           "Set-Cookie": await commitSession(session)
@@ -44,6 +45,15 @@ export async function action({ request, params }: Route.ActionArgs){
     content: message.toString(),
     createdAt: new Date()
   })
+
+  return data(
+    { success: true, message: newMessage, error: undefined },
+    {
+      headers: {
+        "Set-Cookie": await commitSession(session)
+      }
+    }
+  )
 }
 
 const ClientChatPage = ({ loaderData, actionData }: Route.ComponentProps) => {
@@ -54,20 +64,26 @@ const ClientChatPage = ({ loaderData, actionData }: Route.ComponentProps) => {
   useEffect(() => {
     if (actionData?.error) {
       setOpenAlert(true)
+    } else if (actionData?.success){
+      setInput("")
     }
   }, [actionData])
 
 
   if (messages.length === 0) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center gap-4 p-8 text-center">
-        <div className="h-24 w-24 rounded-full bg-muted flex items-center justify-center">
-          <MessageSquareOff className="h-12 w-12 text-muted-foreground" />
+      <div className="flex-1 flex flex-col">
+        <Dialong open={openAlert} onOpenChange={setOpenAlert} error={actionData?.error} />
+        <div className="flex-1 flex flex-col items-center justify-center gap-4 p-8 text-center">
+          <div className="h-24 w-24 rounded-full bg-muted flex items-center justify-center">
+            <MessageSquareOff className="h-12 w-12 text-muted-foreground" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-semibold mb-2 text-muted-foreground">No hay mensajes con {client.name}</h2>
+            <p className="text-muted-foreground">¡Sé el primero en iniciar una conversación! Escribe un mensaje para comenzar a chatear.</p>
+          </div>
         </div>
-        <div>
-          <h2 className="text-2xl font-semibold mb-2 text-muted-foreground">No hay mensajes con {client.name}</h2>
-          <p className="text-muted-foreground">¡Sé el primero en iniciar una conversación! Escribe un mensaje para comenzar a chatear.</p>
-        </div>
+        <ClientForm input={input} setInput={setInput} />
       </div>
     )
   }
@@ -125,21 +141,7 @@ const ClientChatPage = ({ loaderData, actionData }: Route.ComponentProps) => {
           ))}
         </div>
       </ScrollArea>
-      <Form method='POST' className="p-4 border-t">
-        <div className="flex items-center gap-2">
-          <Textarea
-            placeholder="Type a message as a customer"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            className="min-h-[44px] h-[44px] resize-none py-3"
-            name='message'
-          />
-          <Button type='submit' className="h-[44px] px-4 flex items-center gap-2 hover:cursor-pointer">
-            <Send className="h-4 w-4" />
-            <span>Send</span>
-          </Button>
-        </div>
-      </Form>
+      <ClientForm input={input} setInput={setInput} />
     </div>
   )
 }
