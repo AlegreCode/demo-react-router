@@ -19,6 +19,7 @@ const { getSession, commitSession, destroySession } =
 
         // all of these are optional
         domain: "demo-react-router.onrender.com",
+        // domain: "localhost",
         // Expires can also be set (although maxAge overrides it when used in combination).
         // Note that this method is NOT recommended as `new Date` creates only one date on each server deployment, not a dynamic date in the future!
         //
